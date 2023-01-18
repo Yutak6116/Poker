@@ -4,9 +4,11 @@
 # In[1]:
 
 
-import pygame, sys, random, copy, collections, tkinter
+import pygame, sys, random, copy, collections
+import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
 from pygame.locals import *
 
 a = 0
@@ -563,16 +565,93 @@ def if_dealfinish():
         return 0
 
 #<要入力> 数字入力 
-def input_number():
-    pass
+money = 0
+window = tk.Tk()
+window.title("Text Box")
+window.geometry('600x400')
+canvas = tk.Canvas(window, width=300, height=200)
+canvas.pack()
+elabel = ttk.Label(window, text = "Enter how much you want to bet in total")
+canvas.create_window(0, 80, window=elabel)
+entry = tk.Entry (window)
+canvas.create_window(0, 100, window=entry)
+
+def getValue ():
+    tval = int(entry.get())
+    money = tval
+    print(money)
+    window.destroy()
+button = tk.Button(text='Enter', command=getValue)
+canvas.create_window(0, 130, window=button)
 
 #<要入力> playerの動作 ボタンが触られるまで動作を停止
 def player_action():
-    pass
+    button1 = pygame.Rect(80, 700, 70, 50)  
+    button2 = pygame.Rect(160, 700, 70, 50)
+    button3 = pygame.Rect(240, 700, 70, 50)  
+    button4 = pygame.Rect(320, 700, 70, 50)
+    button5 = pygame.Rect(400, 700, 70, 50)
+    for event in pygame.event.get():
+        if button1.collidepoint(event.pos):
+            
+            check(0)
+        if button2.collidepoint(event.pos):
+            
+            fold(0)
+        if button3.collidepoint(event.pos):
+            
+            call(0)
+        if button4.collidepoint(event.pos):
+            
+            window.mainloop()
+            bet(0, money)
+        if button5.collidepoint(event.pos):
+            
+            window.mainloop()
+            rai_se(0, money)   
+    pygame.display.flip()
+    
 
 #<輸入力>　player、CPUのアクションを受け付け、カードオープン、商社の決定を行う
 def dealer(n, now_board, screen):
-    pass
+    global tips, f_tips
+    if n == 0:
+        player_action()
+    else:
+        poker_AI(a,p2_hand,now_board)
+    tips_update(screen)
+    if if_dealfinish() == 2:
+        screen.blit(player2_card1_open,(640,140))
+        screen.blit(player2_card2_open,(580,140))
+        flop(screen)
+        turn(screen)
+        river(screen)
+        det_winner2(p1_hand,p2_hand,board)
+        tips_update(screen)
+    elif if_dealfinish() == 1:
+        winner = if_noplay.index(0) 
+        tips[winner] = tips[winner] + sum(f_tips)
+        f_tips = [i * 0 for i in f_tips]
+        tips_update(screen)
+    else:
+        if if_next():
+            make_pot()
+            tips_update(screen)
+            if len(now_board) == 0:
+                flop(screen)
+            elif len(now_board) == 3:
+                turn(screen)
+            elif len(now_board) == 4:
+                river(screen)
+            else:
+                screen.blit(player2_card1_open,(640,140))
+                screen.blit(player2_card2_open,(580,140))
+                det_winner2(p1_hand,p2_hand,board)
+                tips_update(screen)
+        else:
+            False
+
+
 
 #AI
 powercard = [1,13,12,11]
@@ -876,6 +955,7 @@ def tips_update(screen):
         screen.blit(text5, text5.get_rect(center=(435,725)))
     else:
         pygame.draw.rect(screen, green, button5) 
+    pygame.display.flip() 
 
 def flop(screen):
     pygame.time.delay(1000)
@@ -930,11 +1010,159 @@ def main():
     startscreen = [pygame.transform.scale(pygame.image.load("Startscreen.jpg"),(1000,800))]
 
     #gamescene1における描画準備
+    f_tipsrect1 = Rect(360, 520, 80, 20)
+    f_tipsrect2 = Rect(640, 290, 80, 20)
+    tipsrect1 = Rect(480, 700, 80, 20)
+    tipsrect2 = Rect(610, 90, 80, 20)
+    positionrect1 = Rect(300, 520, 40, 20)
+    positionrect2 = Rect(580, 290, 40, 20)
 
+    font1 = pygame.font.SysFont(None, 20)
+    if whoBB == 0:
+        player1_position = "BB"
+        player2_position = "SB"
+    elif whoBB == 1:
+        player1_position = "SB"
+        player2_position = "BB"
+    text_position1 = font1.render(player1_position, True, (0,0,0)) 
+    text_position2 = font1.render(player2_position, True, (0,0,0))
 
+    playernamerect1 = Rect(480, 730, 80, 20)
+    playernamerect2 = Rect(610, 60, 80, 20)
+    text_playername1 = font1.render("player", True, (0,0,0))
+    text_playername2 = font1.render("CPU", True, (0,0,0))
 
+    running = True
+    # ゲームのメインループ --- (*3)
+    while running:
+        for event in pygame.event.get():
+            if event.type == KEYDOWN: 
+                if event.key == K_ESCAPE:
+                    pygame.quit()
+            if event.type == QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
+        if gamescene == 0:
+            screen.blit(startscreen[0], startscreenrect)
+            screen.blit(startbutton[0], startbuttonrect)
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    if startbuttonrect.collidepoint(event.pos):
+                        gamescene = 1
+        elif gamescene == 1:
+            screen.fill(green)
+            pygame.draw.rect(screen, white , positionrect1)
+            pygame.draw.rect(screen, white , positionrect2)
+            pygame.draw.rect(screen, white , f_tipsrect1)
+            pygame.draw.rect(screen, white , f_tipsrect2)      
+            pygame.draw.rect(screen, white , tipsrect1)
+            pygame.draw.rect(screen, white , tipsrect2)
+            pygame.draw.rect(screen, white , playernamerect1)
+            pygame.draw.rect(screen, white , playernamerect2)
+            screen.blit(text_playername1, text_playername1.get_rect(center=(520,740)))
+            screen.blit(text_playername2, text_playername2.get_rect(center=(650,70)))
+            pygame.display.update()  
 
+            ini()
+            p1card1 = draw()
+            p1card2 = draw()
+            p1_hand = [p1card1, p1card2]
+            p2card1 = draw()
+            p2card2 = draw()
+            p2_hand = [p2card1, p2card2]
+            bcard1 = draw()
+            bcard2 = draw()
+            bcard3 = draw()
+            bcard4 = draw()
+            bcard5 = draw()
+            board = [bcard1, bcard2, bcard3, bcard4, bcard5]
 
+            player1_card1 = pygame.image.load(tramp_dic[p1card1])
+            player1_card1 = pygame.transform.scale(player1_card1,(80,120))
+            player1_card2 = pygame.image.load(tramp_dic[p1card2])
+            player1_card2 = pygame.transform.scale(player1_card2,(80,120))
+            player2_card1_hide = pygame.image.load("image52.png")
+            player2_card1_hide = pygame.transform.scale(player2_card1_hide,(80,120))
+            player2_card2_hide = pygame.image.load("image52.png")
+            player2_card2_hide = pygame.transform.scale(player2_card2_hide,(80,120))
+            player2_card1_open = pygame.image.load(tramp_dic[p2card1])
+            player2_card1_open = pygame.transform.scale(player2_card1_open,(80,120))
+            player2_card2_open = pygame.image.load(tramp_dic[p2card2])
+            player2_card2_open = pygame.transform.scale(player2_card2_open,(80,120))
+
+            board_card1 = pygame.image.load("image52.png")
+            board_card1 = pygame.transform.scale(board_card1,(80,120))
+            board_card2 = pygame.image.load("image52.png")
+            board_card2 = pygame.transform.scale(board_card2,(80,120))                                         
+            board_card3 = pygame.image.load("image52.png")
+            board_card3 = pygame.transform.scale(board_card3,(80,120))
+            board_card4 = pygame.image.load("image52.png")
+            board_card4 = pygame.transform.scale(board_card4,(80,120))                                         
+            board_card5 = pygame.image.load("image52.png")
+            board_card5 = pygame.transform.scale(board_card5,(80,120))
+
+            screen.blit(player1_card1,(300,560))
+            screen.blit(player1_card2,(360,560))
+            screen.blit(player2_card1_hide,(640,140))
+            screen.blit(player2_card2_hide,(580,140))
+            screen.blit(board_card1,(330,355))                                     
+            screen.blit(board_card2,(400,355))  
+            screen.blit(board_card3,(470,355))                                       
+            screen.blit(board_card4,(540,355))                                       
+            screen.blit(board_card5,(610,355))
+
+            pygame.display.flip()
+            clock.tick(FPS)
+            if tips.count(0) != 1: # if_gamefinish == False
+                pay_SB_BB()
+                pygame.draw.rect(screen, white , positionrect1)
+                pygame.draw.rect(screen, white , positionrect2)
+                font1 = pygame.font.SysFont(None, 20)
+                if whoBB == 0:
+                    player1_position = "BB"
+                    player2_position = "SB"
+                elif whoBB == 1:
+                    player1_position = "SB"
+                    player2_position = "BB"
+                text_position1 = font1.render(player1_position, True, (0,0,0)) 
+                text_position2 = font1.render(player2_position, True, (0,0,0))
+                screen.blit(text_position1, text_position1.get_rect(center=(320,530)))
+                screen.blit(text_position2, text_position2.get_rect(center=(600,300)))
+                pygame.display.flip() 
+                tips_update(screen)
+                now_board = []
+                if if_dealfinish() == 2:
+                    screen.blit(player2_card1_open,(640,140))
+                    screen.blit(player2_card2_open,(580,140))
+                    flop(screen)
+                    turn(screen)
+                    river(screen)
+                    det_winner2(p1_hand,p2_hand,board)
+                    tips_update(screen)
+                elif if_dealfinish() == 1:
+                    winner = if_noplay.index(0) 
+                    tips[winner] = tips[winner] + sum(f_tips)
+                    f_tips = [i * 0 for i in f_tips]
+                    tips_update(screen)
+                elif if_dealfinish() == 0:
+                    who_play = (whoBB + 1) % 2
+                    while if_dealfinish() == 0:
+                        dealer(who_play, now_board, screen)
+                        if not if_dealfinish and not if_next() :
+                            who_play = (who_play + 1) % 2
+            elif tips.count(0) == 1: # if_gamefinish == True
+                messagebox.showinfo("Game Finished", "Pless Space Key")
+            for event in pygame.event.get():
+                if event.type == KEYDOWN: 
+                    if event.key == K_SPACE:
+                        gamescene = 0
+        else:
+            print("error")    
+        pygame.display.flip()        
+
+if __name__ == '__main__':
+    main()
 
 
 
