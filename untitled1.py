@@ -430,7 +430,6 @@ def pay_SB_BB():
         tips[whoSB] -= SB
         f_tips[whoSB] += SB    
 
-text_action = 0
 def bet(n,money):
     global tips,f_tips,if_actioned,text_action
     
@@ -896,6 +895,7 @@ def main():
     global tips, f_tips
     global player1_card1,player1_card2,player2_card1_open,player2_card2_open,p1_hand,p2_hand,board
     global event, if_actioned, screen, if_noplay, if_all_in, pot
+    global text_action
 
     # ゲームの初期化処理
     gamescene = 0
@@ -1214,6 +1214,7 @@ def main():
                                 pygame.time.delay(1000)
                                 print("PLAYER played")
                             elif who_play == 1:
+                                pygame.draw.rect(screen, white ,actionrect)
                                 poker_AI(who_play,p2_hand,now_board)
                                 text_action = font1.render(text_action, True, (0,0,0))
                                 screen.blit(text_action, text_action.get_rect(center=(780,300)))
